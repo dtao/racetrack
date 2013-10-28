@@ -1,0 +1,11 @@
+{
+  "name": "racetrack",
+  "dependencies": {
+    "benchmark": "*",
+    "bootstrap": "*",
+    "codemirror": "*",
+    "lazy.js": "*",
+    "lodash": "*",
+    "underscore": "*"
+  }
+}

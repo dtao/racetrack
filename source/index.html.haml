@@ -1,0 +1,57 @@
+!!!
+%html
+
+  %head
+    %title Racetrack
+    = stylesheet_link_tag('all')
+    = javascript_include_tag('//code.highcharts.com/adapters/standalone-framework.js')
+    = javascript_include_tag('//code.highcharts.com/highcharts.js')
+    = javascript_include_tag('all')
+
+  %body
+    %main
+      %header
+        %h1 Racetrack
+
+      #chart
+
+      %table#results
+        %thead
+          %tr
+            %th Implementation
+            %th Ops/second
+
+        %tbody
+
+      .editors
+        %fieldset
+          %input(type="text" name="title" placeholder="Enter a title" value="map().filter().reduce() over 1,000 elements")
+
+        #setup
+          %textarea
+            :preserve
+              // Setup code
+              var array = _.range(1000);
+
+              function increment(x) { return x + 1; }
+              function isEven(x) { return x % 2 === 0; }
+              function noop(x) {}
+
+        #lazy
+          %textarea
+            :preserve
+              // Lazy code
+              Lazy(array).map(increment).filter(isEven).reduce(function(x, y) {
+                return x + y;
+              }, 0);
+
+        #underscore
+          %textarea
+            :preserve
+              // Underscore/Lo-Dash code
+              _.reduce(_.filter(_.map(array, increment), isEven), function(x, y) {
+                return x + y;
+              }, 0);
+
+      .actions
+        %button#run-benchmarks Run benchmarks
