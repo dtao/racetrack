@@ -239,6 +239,11 @@ window.addEventListener('load', function() {
           data: [getLastCellValue(results.children[2])]
         }
       ],
+      plotOptions: {
+        series: {
+          animation: false
+        }
+      },
       credits: {
         enabled: false
       }
