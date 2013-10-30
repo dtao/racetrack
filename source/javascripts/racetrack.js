@@ -346,6 +346,7 @@ window.addEventListener('load', function() {
     var benchmark = loadSavedBenchmarks()[benchmarkIndex];
 
     title.value = benchmark.title;
+    inputSizes.value = benchmark.inputSizes || '';
     setupEditor.setValue(benchmark.setup);
     lazyEditor.setValue(benchmark.lazy);
     underscoreEditor.setValue(benchmark.underscore);
@@ -384,6 +385,7 @@ window.addEventListener('load', function() {
   saveButton.addEventListener('click', function() {
     var data = {
       title: title.value,
+      inputSizes: inputSizes.value,
       setup: setupEditor.getValue(),
       lazy: lazyEditor.getValue(),
       underscore: underscoreEditor.getValue(),
