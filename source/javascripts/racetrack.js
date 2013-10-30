@@ -5,7 +5,8 @@ window.addEventListener('load', function() {
 
   var results  = document.querySelector('table#results tbody'),
       progress = document.getElementById('progress'),
-      chart    = document.getElementById('chart');
+      chart    = document.getElementById('chart'),
+      errors   = document.getElementById('errors');
 
   function createEditor(containerId) {
     var container = document.getElementById(containerId),
@@ -27,6 +28,12 @@ window.addEventListener('load', function() {
       runButton         = document.getElementById('run-benchmarks'),
       saveButton        = document.getElementById('save-benchmarks'),
       benchmarkTemplate = document.getElementById('benchmark-template').textContent;
+
+  function displayError(message) {
+    var error = document.createElement('P');
+    error.textContent = message;
+    errors.appendChild(error);
+  }
 
   function addBenchmarkToSuite(name, editor, inputSize, transformer) {
     transformer = transformer || function(code) { return code; };
@@ -237,6 +244,10 @@ window.addEventListener('load', function() {
           bar.style.width = Math.floor(benchmarkCycles / topCycles * 100) + '%';
         });
       });
+
+      benchmark.on('error', function(e) {
+        displayError(e.message);
+      });
     });
 
     suite.on('cycle', function(e) {
@@ -379,6 +390,10 @@ window.addEventListener('load', function() {
     }
 
     saveBenchmarks(benchmarks, data.title);
+  });
+
+  window.addEventListener('error', function(e) {
+    displayError(e.message);
   });
 
   populateBenchmarksList(loadSavedBenchmarks());

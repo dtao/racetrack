@@ -18,6 +18,23 @@ header {
   }
 }
 
+#errors {
+  @extend .alert, .alert-danger;
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 1ex 1em;
+  text-align: center;
+  z-index: 10;
+
+  &:empty {
+    display: none;
+  }
+}
+
 #content {
   @extend .row;
 
