@@ -17,24 +17,28 @@ window.addEventListener('load', function() {
     });
   }
 
-  var title            = document.querySelector('input[name="title"]'),
-      benchmarksList   = document.querySelector('.saved-benchmarks'),
-      setupEditor      = createEditor('setup'),
-      lazyEditor       = createEditor('lazy'),
-      underscoreEditor = createEditor('underscore'),
-      newButton        = document.getElementById('new-benchmark'),
-      runButton        = document.getElementById('run-benchmarks'),
-      saveButton       = document.getElementById('save-benchmarks');
+  var title             = document.querySelector('input[name="title"]'),
+      inputSizes        = document.querySelector('input[name="input-sizes"]'),
+      benchmarksList    = document.querySelector('.saved-benchmarks'),
+      setupEditor       = createEditor('setup'),
+      lazyEditor        = createEditor('lazy'),
+      underscoreEditor  = createEditor('underscore'),
+      newButton         = document.getElementById('new-benchmark'),
+      runButton         = document.getElementById('run-benchmarks'),
+      saveButton        = document.getElementById('save-benchmarks'),
+      benchmarkTemplate = document.getElementById('benchmark-template').textContent;
 
-  function addBenchmarkToSuite(name, editor, transformer) {
+  function addBenchmarkToSuite(name, editor, inputSize, transformer) {
     transformer = transformer || function(code) { return code; };
 
-    return [
-      'suite.add("' + name + '", {',
-        'setup: function() { ' + setupEditor.getValue() + ' },',
-        'fn: function() { ' + transformer(editor.getValue()) + ' }',
-      '});'
-    ].join('\n');
+    var js = _.template(benchmarkTemplate, {
+      name: name,
+      setup: setupEditor.getValue(),
+      code: transformer(editor.getValue()),
+      inputSize: inputSize
+    });
+
+    return js;
   }
 
   function formatNumber(number) {
@@ -132,17 +136,52 @@ window.addEventListener('load', function() {
     }, 1000);
   }
 
-  function addResultsRow(benchmark) {
-    var resultRow = document.createElement('TR'),
-        labelCell = document.createElement('TD'),
-        benchCell = document.createElement('TD');
+  function resetResultsTable() {
+    var headerRow = results
+      .parentNode         // TABLE
+      .firstElementChild  // THEAD
+      .firstElementChild; // TR
 
-    labelCell.textContent = benchmark.name;
-    benchCell.textContent = formatNumber(benchmark.hz);
-    resultRow.appendChild(labelCell);
-    resultRow.appendChild(benchCell);
+    // Remove all but the first TH element
+    Lazy(headerRow.children).drop(1).each(function(cell) {
+      headerRow.removeChild(cell);
+    });
+  }
 
-    results.appendChild(resultRow);
+  function addInputSizeColumn(inputSize) {
+    // Yeah, I know, DRY violation...
+    var headerRow = results
+      .parentNode         // TABLE
+      .firstElementChild  // THEAD
+      .firstElementChild; // TR
+
+    var columnHeader = document.createElement('TH');
+    columnHeader.textContent = 'Ops/sec (N=' + inputSize + ')';
+    headerRow.appendChild(columnHeader);
+  }
+
+  function addOrUpdateResultsRow(benchmark, sizes) {
+    var resultRow = results.querySelector('tr[data-benchmark="' + benchmark.name + '"]');
+
+    if (!resultRow) {
+      resultRow = document.createElement('TR');
+      resultRow.setAttribute('data-benchmark', benchmark.name);
+
+      var labelCell = document.createElement('TD');
+      labelCell.textContent = benchmark.name;
+      resultRow.appendChild(labelCell);
+
+      Lazy(sizes).each(function(size) {
+        var sizeCell = document.createElement('TD');
+        sizeCell.setAttribute('data-input-size', size);
+        resultRow.appendChild(sizeCell);
+      });
+
+      results.appendChild(resultRow);
+    }
+
+    var resultCell = resultRow.querySelector('td[data-input-size="' + benchmark.inputSize + '"]');
+    resultCell.textContent = formatNumber(benchmark.hz);
 
     return resultRow;
   }
@@ -154,11 +193,19 @@ window.addEventListener('load', function() {
     progress.innerHTML = '';
     chart.innerHTML = '';
 
-    eval(addBenchmarkToSuite('Underscore', underscoreEditor));
-    eval(addBenchmarkToSuite('Lo-Dash', underscoreEditor, function(code) {
-      return code.replace(/\b_\b/g, 'lodash');
-    }));
-    eval(addBenchmarkToSuite('Lazy.js', lazyEditor));
+    resetResultsTable();
+
+    var sizes = inputSizes.value.split(/,\s*/);
+
+    Lazy(sizes).each(function(inputSize) {
+      addInputSizeColumn(inputSize);
+
+      eval(addBenchmarkToSuite('Underscore', underscoreEditor, inputSize));
+      eval(addBenchmarkToSuite('Lo-Dash', underscoreEditor, inputSize, function(code) {
+        return code.replace(/\b_\b/g, 'lodash');
+      }));
+      eval(addBenchmarkToSuite('Lazy.js', lazyEditor, inputSize));
+    });
 
     var cycles    = {},
         topCycles = 0;
@@ -196,9 +243,11 @@ window.addEventListener('load', function() {
       var benchmark = e.target;
 
       var currentProgressBar = progress.querySelector('.progress.active');
-      currentProgressBar.className = 'progress';
+      if (currentProgressBar) {
+        currentProgressBar.className = 'progress';
+      }
 
-      addResultsRow(benchmark);
+      addOrUpdateResultsRow(benchmark, sizes);
 
       if (results.children.length === 3) {
         createChartFromTable();

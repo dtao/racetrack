@@ -27,19 +27,22 @@
             %thead
               %tr
                 %th Implementation
-                %th Ops/second
 
             %tbody
 
           .editors
             %fieldset
-              %input(type="text" name="title" placeholder="Enter a title")
+              .title
+                %input(type="text" name="title" placeholder="Enter a title" value="map() N values")
+
+              .input-sizes
+                %input(type="text" name="input-sizes" placeholder="Input sizes, comma-delimited (e.g., 10, 100, 1000)" value="10, 100, 1000")
 
             #setup
               %textarea
                 :preserve
                   // Setup code
-                  var array = _.range(100);
+                  var array = _.range(N);
 
                   function increment(x) { return x + 1; }
                   function isEven(x) { return x % 2 === 0; }
@@ -49,13 +52,31 @@
               %textarea
                 :preserve
                   // Lazy code
+                  Lazy(array).map(increment).each(noop);
 
             #underscore
               %textarea
                 :preserve
                   // Underscore/Lo-Dash code
+                  _.each(_.map(array, increment), noop);
 
           .actions
             %button#new-benchmark New
             %button#run-benchmarks Run
             %button#save-benchmarks Save
+
+      %script#benchmark-template(type="text/plain")
+        :plain
+          (function(suite) {
+            var benchmark = new Benchmark("<%= name %>", {
+              setup: function() {
+                var N = <%= inputSize %>;
+                <%= setup %>
+              },
+              fn: function() { <%= code %> },
+            });
+
+            benchmark.inputSize = <%= inputSize %>;
+
+            suite.add(benchmark);
+          }(suite));

@@ -80,8 +80,8 @@ header {
 table {
   @extend .table, .table-striped, .table-hover;
 
-  th:last-child,
-  td:last-child {
+  th:not(:first-child),
+  td:not(:first-child) {
     text-align: right;
   }
 
@@ -112,9 +112,11 @@ button#save-benchmarks {
   margin-bottom: 20px;
 
   fieldset {
-    @extend .col-lg-12;
-
     margin-bottom: 20px;
+
+    .title, .input-sizes {
+      @extend .col-lg-6, .col-md-6;
+    }
 
     input[type="text"] {
       @extend .form-control;
