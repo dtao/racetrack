@@ -15,6 +15,7 @@
 
       #content
         %nav
+          %h3 Saved Benchmarks
           .saved-benchmarks
 
         %section#stage
@@ -32,34 +33,29 @@
 
           .editors
             %fieldset
-              %input(type="text" name="title" placeholder="Enter a title" value="map().filter().reduce() over 1,000 elements")
+              %input(type="text" name="title" placeholder="Enter a title")
 
             #setup
               %textarea
                 :preserve
                   // Setup code
-                  var array = _.range(1000);
+                  var array = _.range(100);
 
                   function increment(x) { return x + 1; }
                   function isEven(x) { return x % 2 === 0; }
-                  function noop(x) {}
+                  function noop(e) {}
 
             #lazy
               %textarea
                 :preserve
                   // Lazy code
-                  Lazy(array).map(increment).filter(isEven).reduce(function(x, y) {
-                    return x + y;
-                  }, 0);
 
             #underscore
               %textarea
                 :preserve
                   // Underscore/Lo-Dash code
-                  _.reduce(_.filter(_.map(array, increment), isEven), function(x, y) {
-                    return x + y;
-                  }, 0);
 
           .actions
-            %button#run-benchmarks Run benchmarks
-            %button#save-benchmarks Save benchmarks
+            %button#new-benchmark New
+            %button#run-benchmarks Run
+            %button#save-benchmarks Save

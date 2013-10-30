@@ -4,7 +4,8 @@ window.addEventListener('load', function() {
   Benchmark.options.maxTime = 1.0;
 
   var results  = document.querySelector('table#results tbody'),
-      progress = document.getElementById('progress');
+      progress = document.getElementById('progress'),
+      chart    = document.getElementById('chart');
 
   function createEditor(containerId) {
     var container = document.getElementById(containerId),
@@ -20,7 +21,10 @@ window.addEventListener('load', function() {
       benchmarksList   = document.querySelector('.saved-benchmarks'),
       setupEditor      = createEditor('setup'),
       lazyEditor       = createEditor('lazy'),
-      underscoreEditor = createEditor('underscore');
+      underscoreEditor = createEditor('underscore'),
+      newButton        = document.getElementById('new-benchmark'),
+      runButton        = document.getElementById('run-benchmarks'),
+      saveButton       = document.getElementById('save-benchmarks');
 
   function addBenchmarkToSuite(name, editor, transformer) {
     transformer = transformer || function(code) { return code; };
@@ -55,12 +59,37 @@ window.addEventListener('load', function() {
     return Number(String(value).replace(/,/g, ''));
   }
 
-  function lastCellValue(row) {
-    return row.querySelector('td:last-child').textContent;
+  function getLastCellValue(row) {
+    if (!row) {
+      return null;
+    }
+
+    return parseNumber(row.querySelector('td:last-child').textContent);
+  }
+
+  function setLastCellValue(row, value) {
+    row.querySelector('td:last-child').textContent = value;
   }
 
   function loadSavedBenchmarks() {
     return JSON.parse(localStorage.benchmarks || '[]');
+  }
+
+  function saveBenchmarks(benchmarks, title) {
+    localStorage.benchmarks = JSON.stringify(benchmarks);
+    populateBenchmarksList(benchmarks);
+
+    if (title) {
+      highlightBenchmark(title);
+    }
+  }
+
+  function deleteBenchmark(benchmarkIndex) {
+    benchmarkIndex = Number(benchmarkIndex);
+
+    var benchmarks = loadSavedBenchmarks();
+    benchmarks.splice(benchmarkIndex, 1);
+    saveBenchmarks(benchmarks);
   }
 
   function populateBenchmarksList(benchmarks) {
@@ -70,12 +99,17 @@ window.addEventListener('load', function() {
       var benchmarkLink = document.createElement('A');
       benchmarkLink.setAttribute('href', 'javascript:void(0);');
       benchmarkLink.setAttribute('data-benchmark', i);
-      
-      var titleText = document.createTextNode();
+
+      var deleteButton = document.createElement('SPAN');
+      deleteButton.className = 'delete';
+      benchmarkLink.appendChild(deleteButton);
+
+      var titleText = document.createElement('SPAN');
+      titleText.className = 'title';
       titleText.textContent = benchmark.title;
       benchmarkLink.appendChild(titleText);
 
-      var timestamp = document.createElement('small');
+      var timestamp = document.createElement('SMALL');
       timestamp.textContent = new Date(benchmark.created).toLocaleString();
       benchmarkLink.appendChild(timestamp);
 
@@ -83,28 +117,42 @@ window.addEventListener('load', function() {
     });
   }
 
-  benchmarksList.addEventListener('click', function(e) {
-    var benchmarkLink = e.target;
+  function highlightBenchmark(title) {
+    var benchmarkLink = Lazy(benchmarksList.children).find(function(link) {
+      return link.querySelector('.title').textContent === title;
+    });
 
-    if (benchmarkLink.nodeName !== 'A') {
+    if (!benchmarkLink) {
       return;
     }
 
-    var benchmarkIndex = benchmarkLink.getAttribute('data-benchmark');
-    var benchmark = loadSavedBenchmarks()[benchmarkIndex];
+    benchmarkLink.className = 'highlighted';
+    setTimeout(function() {
+      benchmarkLink.removeAttribute('class');
+    }, 1000);
+  }
 
-    title.value = benchmark.title;
-    setupEditor.setValue(benchmark.setup);
-    lazyEditor.setValue(benchmark.lazy);
-    underscoreEditor.setValue(benchmark.underscore);
-  });
+  function addResultsRow(benchmark) {
+    var resultRow = document.createElement('TR'),
+        labelCell = document.createElement('TD'),
+        benchCell = document.createElement('TD');
 
-  document.getElementById('run-benchmarks').addEventListener('click', function() {
-    var button = this,
-        suite  = new Benchmark.Suite();
+    labelCell.textContent = benchmark.name;
+    benchCell.textContent = formatNumber(benchmark.hz);
+    resultRow.appendChild(labelCell);
+    resultRow.appendChild(benchCell);
+
+    results.appendChild(resultRow);
+
+    return resultRow;
+  }
+
+  function runBenchmarks() {
+    var suite  = new Benchmark.Suite();
 
     results.innerHTML = '';
     progress.innerHTML = '';
+    chart.innerHTML = '';
 
     eval(addBenchmarkToSuite('Underscore', underscoreEditor));
     eval(addBenchmarkToSuite('Lo-Dash', underscoreEditor, function(code) {
@@ -150,72 +198,133 @@ window.addEventListener('load', function() {
       var currentProgressBar = progress.querySelector('.progress.active');
       currentProgressBar.className = 'progress';
 
-      var resultRow = document.createElement('TR'),
-          labelCell = document.createElement('TD'),
-          benchCell = document.createElement('TD');
-
-      labelCell.textContent = benchmark.name;
-      benchCell.textContent = formatNumber(benchmark.hz);
-      resultRow.appendChild(labelCell);
-      resultRow.appendChild(benchCell);
-      results.appendChild(resultRow);
+      addResultsRow(benchmark);
 
       if (results.children.length === 3) {
-        new Highcharts.Chart({
-          title: {
-            text: title.value
-          },
-          chart: {
-            renderTo: 'chart',
-            type: 'bar'
-          },
-          xAxis: {
-            categories: ['Ops/second']
-          },
-          yAxis: {
-            title: false
-          },
-          series: [
-            {
-              name: 'Underscore',
-              data: [parseNumber(lastCellValue(results.children[0]))]
-            },
-            {
-              name: 'Lo-Dash',
-              data: [parseNumber(lastCellValue(results.children[1]))]
-            },
-            {
-              name: 'Lazy.js',
-              data: [parseNumber(lastCellValue(results.children[2]))]
-            }
-          ],
-          credits: {
-            enabled: false
-          }
-        });
-
-        button.removeAttribute('disabled');
+        createChartFromTable();
+        runButton.removeAttribute('disabled');
       }
     });
 
-    button.setAttribute('disabled', 'disabled');
+    runButton.setAttribute('disabled', 'disabled');
     suite.run({ async: true });
+  }
+
+  function createChartFromTable() {
+    new Highcharts.Chart({
+      title: {
+        text: title.value
+      },
+      chart: {
+        renderTo: 'chart',
+        type: 'bar'
+      },
+      xAxis: {
+        categories: ['Ops/second']
+      },
+      yAxis: {
+        title: false
+      },
+      series: [
+        {
+          name: 'Underscore',
+          data: [getLastCellValue(results.children[0])]
+        },
+        {
+          name: 'Lo-Dash',
+          data: [getLastCellValue(results.children[1])]
+        },
+        {
+          name: 'Lazy.js',
+          data: [getLastCellValue(results.children[2])]
+        }
+      ],
+      credits: {
+        enabled: false
+      }
+    });
+  }
+
+  benchmarksList.addEventListener('click', function(e) {
+    var benchmarkLink = e.target;
+
+    if (benchmarkLink.nodeName === 'SPAN' && benchmarkLink.className === 'delete') {
+      if (confirm('Are you sure you want to delete this benchmark?')) {
+        deleteBenchmark(benchmarkLink.getAttribute('data-benchmark'));
+        return;
+      }
+    }
+
+    while (benchmarkLink.nodeName !== 'A') {
+      benchmarkLink = benchmarkLink.parentNode;
+
+      // Sanity check, just in case
+      if (benchmarkLink === document) {
+        return;
+      }
+    }
+
+    var benchmarkIndex = benchmarkLink.getAttribute('data-benchmark');
+    var benchmark = loadSavedBenchmarks()[benchmarkIndex];
+
+    title.value = benchmark.title;
+    setupEditor.setValue(benchmark.setup);
+    lazyEditor.setValue(benchmark.lazy);
+    underscoreEditor.setValue(benchmark.underscore);
+
+    results.innerHTML = '';
+    progress.innerHTML = '';
+    chart.innerHTML = '';
+
+    if (benchmark.lazyResult) {
+      addResultsRow({ name: 'Underscore', hz: benchmark.underscoreResult });
+      addResultsRow({ name: 'Lo-Dash', hz: benchmark.lodashResult });
+      addResultsRow({ name: 'Lazy.js', hz: benchmark.lazyResult });
+
+      createChartFromTable();
+    }
   });
 
-  document.getElementById('save-benchmarks').addEventListener('click', function() {
+  newButton.addEventListener('click', function() {
+    results.innerHTML = '';
+    progress.innerHTML = '';
+    chart.innerHTML = '';
+    title.value = '';
+    setupEditor.setValue('');
+    lazyEditor.setValue('');
+    underscoreEditor.setValue('');
+  });
+
+  runButton.addEventListener('click', function() {
+    runBenchmarks();
+  });
+
+  saveButton.addEventListener('click', function() {
     var data = {
       title: title.value,
       setup: setupEditor.getValue(),
       lazy: lazyEditor.getValue(),
       underscore: underscoreEditor.getValue(),
+      underscoreResult: getLastCellValue(results.children[0]),
+      lodashResult: getLastCellValue(results.children[1]),
+      lazyResult: getLastCellValue(results.children[2]),
       created: new Date().getTime()
     };
 
     var benchmarks = loadSavedBenchmarks();
-    benchmarks.push(data);
-    localStorage.benchmarks = JSON.stringify(benchmarks);
 
-    populateBenchmarksList(benchmarks);
+    var existingIndex = Lazy(benchmarks).pluck('title').indexOf(data.title);
+
+    if (existingIndex !== -1) {
+      benchmarks[existingIndex] = Lazy(benchmarks[existingIndex])
+        .extend(data)
+        .toObject();
+
+    } else {
+      benchmarks.push(data);
+    }
+
+    saveBenchmarks(benchmarks, data.title);
   });
 
   populateBenchmarksList(loadSavedBenchmarks());

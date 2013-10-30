@@ -1,3 +1,10 @@
+@mixin transition($property, $duration) {
+  transition: $property $duration;
+  -moz-transition: $property $duration;
+  -o-transition: $property $duration;
+  -webkit-transition: $property $duration;
+}
+
 main {
   @extend .container;
 }
@@ -23,11 +30,39 @@ header {
       a {
         @extend .list-group-item;
 
+        span.delete {
+          @extend .glyphicon, .glyphicon-trash, .pull-right;
+
+          display: none;
+
+          &:hover {
+            @extend .text-danger;
+          }
+        }
+
         small {
           @extend .text-muted;
 
           display: block;
         }
+
+        &:hover span.delete {
+          display: block;
+        }
+
+        &.highlighted {
+          @extend .label-info;
+          color: #fff;
+
+          small {
+            @extend .text-info;
+            color: #fff;
+          }
+
+          @include transition(background-color, 1s);
+        }
+
+        @include transition(background-color, 1s);
       }
     }
   }
@@ -56,6 +91,10 @@ button {
 
 button#run-benchmarks {
   @extend .btn-info;
+}
+
+button#new-benchmark {
+  @extend .btn-default;
 }
 
 button#save-benchmarks {
@@ -89,13 +128,24 @@ button#save-benchmarks {
 }
 
 .CodeMirror {
+  @extend .form-control;
+
   font-family: "Source Code Pro", monospace;
   height: auto;
+  padding: 0;
+}
+
+.CodeMirror-focused {
+  @extend .form-control:focus;
 }
 
 .CodeMirror-scroll {
   overflow-y: hidden;
   overflow-x: auto;
+}
+
+.CodeMirror, .CodeMirror-scroll {
+  min-height: 200px;
 }
 
 @media all and (min-width: 1600px) {
