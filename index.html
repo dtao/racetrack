@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Racetrack</title>
+    <link href="/stylesheets/all.css" media="screen" rel="stylesheet" type="text/css" />
+    <script src="//code.jquery.com/jquery-1.10.1.min.js" type="text/javascript"></script>
+    <script src="//code.highcharts.com/highcharts.js" type="text/javascript"></script>
+    <script src="/javascripts/all.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Racetrack</h1>
+      </header>
+      <div id='errors'></div>
+      <div id='content'>
+        <nav>
+          <h3>Saved Benchmarks</h3>
+          <div class='saved-benchmarks'></div>
+        </nav>
+        <section id='stage'>
+          <div id='progress'></div>
+          <div class='bar-chart' data-options='getChartOptions' data-source='#results' id='chart' style='display: none;'></div>
+          <table id='results'>
+            <thead>
+              <tr>
+                <th>Implementation</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class='editors'>
+            <fieldset>
+              <div class='title'>
+                <input name='title' placeholder='Enter a title' type='text' value='map() N values'>
+              </div>
+              <div class='input-sizes'>
+                <input name='input-sizes' placeholder='Input sizes, comma-delimited (e.g., 10, 100, 1000)' type='text' value='10, 100, 1000'>
+              </div>
+            </fieldset>
+            <div id='setup'>
+              <textarea>// Setup code&#x000A;var array = _.range(N);&#x000A;&#x000A;function increment(x) { return x + 1; }&#x000A;function isEven(x) { return x % 2 === 0; }&#x000A;function noop(e) {}&#x000A;</textarea>
+            </div>
+            <div id='lazy'>
+              <textarea>// Lazy code&#x000A;Lazy(array).map(increment).each(noop);&#x000A;</textarea>
+            </div>
+            <div id='underscore'>
+              <textarea>// Underscore/Lo-Dash code&#x000A;_.each(_.map(array, increment), noop);&#x000A;</textarea>
+            </div>
+          </div>
+          <div class='actions'>
+            <button id='new-benchmark'>New</button>
+            <button id='run-benchmarks'>Run</button>
+            <button id='save-benchmarks'>Save</button>
+          </div>
+        </section>
+      </div>
+      <script id='benchmark-template' type='text/plain'>
+        (function(suite) {
+          var benchmark = new Benchmark("<%= name %>", {
+            setup: function() {
+              var N = <%= inputSize %>;
+              <%= setup %>
+            },
+            fn: function() { <%= code %> },
+          });
+        
+          benchmark.inputSize = <%= inputSize %>;
+        
+          suite.add(benchmark);
+        }(suite));
+      </script>
+    </main>
+  </body>
+</html>
