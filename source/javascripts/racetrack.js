@@ -321,6 +321,8 @@ window.addEventListener('load', function() {
 
   function createChartFromTable() {
     HighTables.renderCharts();
+
+    setTimeout(function() { progress.innerHTML = ''; }, 1000);
   }
 
   benchmarksList.addEventListener('click', function(e) {
