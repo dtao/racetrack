@@ -161,6 +161,8 @@ window.addEventListener('load', function() {
     }
 
     benchmarkLink.className = 'highlighted';
+    benchmarkLink.scrollIntoView();
+
     setTimeout(function() {
       benchmarkLink.removeAttribute('class');
     }, 1000);
