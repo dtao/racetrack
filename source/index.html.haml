@@ -4,7 +4,7 @@
   %head
     %title Racetrack
     = stylesheet_link_tag('all')
-    = javascript_include_tag('//code.highcharts.com/adapters/standalone-framework.js')
+    = javascript_include_tag('//code.jquery.com/jquery-1.10.1.min.js')
     = javascript_include_tag('//code.highcharts.com/highcharts.js')
     = javascript_include_tag('all')
 
@@ -23,7 +23,7 @@
         %section#stage
           #progress
 
-          #chart
+          #chart.bar-chart(data-source="#results")
 
           %table#results
             %thead

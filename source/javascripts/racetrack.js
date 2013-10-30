@@ -214,8 +214,9 @@ window.addEventListener('load', function() {
       eval(addBenchmarkToSuite('Lazy.js', lazyEditor, inputSize));
     });
 
-    var cycles    = {},
-        topCycles = 0;
+    var cycles      = {},
+        topCycles   = 0,
+        resultCount = 0;
 
     suite.forEach(function(benchmark) {
       benchmark.on('cycle', function() {
@@ -260,7 +261,7 @@ window.addEventListener('load', function() {
 
       addOrUpdateResultsRow(benchmark, sizes);
 
-      if (results.children.length === 3) {
+      if (++(resultCount) === (3 * sizes.length)) {
         createChartFromTable();
         runButton.removeAttribute('disabled');
       }
@@ -271,43 +272,7 @@ window.addEventListener('load', function() {
   }
 
   function createChartFromTable() {
-    new Highcharts.Chart({
-      title: {
-        text: title.value
-      },
-      chart: {
-        renderTo: 'chart',
-        type: 'bar'
-      },
-      xAxis: {
-        categories: ['Ops/second']
-      },
-      yAxis: {
-        title: false
-      },
-      series: [
-        {
-          name: 'Underscore',
-          data: [getLastCellValue(results.children[0])]
-        },
-        {
-          name: 'Lo-Dash',
-          data: [getLastCellValue(results.children[1])]
-        },
-        {
-          name: 'Lazy.js',
-          data: [getLastCellValue(results.children[2])]
-        }
-      ],
-      plotOptions: {
-        series: {
-          animation: false
-        }
-      },
-      credits: {
-        enabled: false
-      }
-    });
+    HighTables.renderCharts();
   }
 
   benchmarksList.addEventListener('click', function(e) {

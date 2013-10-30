@@ -5,4 +5,5 @@
 //= require lib/benchmark/benchmark
 //= require lib/lazy.js/lazy
 //= require lib/lazy.js/lazy.dom
+//= require lib/hightables
 //= require racetrack
