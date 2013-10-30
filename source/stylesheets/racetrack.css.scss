@@ -22,7 +22,7 @@ header {
   @extend .row;
 
   nav {
-    @extend .col-lg-2;
+    @extend .col-lg-2, .col-md-4;
 
     .saved-benchmarks {
       @extend .list-group;
@@ -30,10 +30,15 @@ header {
       a {
         @extend .list-group-item;
 
+        position: relative;
+
         span.delete {
-          @extend .glyphicon, .glyphicon-trash, .pull-right;
+          @extend .glyphicon, .glyphicon-trash;
 
           display: none;
+          position: absolute;
+          top: 1em;
+          right: 1em;
 
           &:hover {
             @extend .text-danger;
@@ -68,7 +73,7 @@ header {
   }
 
   #stage {
-    @extend .col-lg-10;
+    @extend .col-lg-10, .col-md-8;
   }
 }
 
