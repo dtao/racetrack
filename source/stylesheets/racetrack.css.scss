@@ -5,6 +5,10 @@
   -webkit-transition: $property $duration;
 }
 
+body {
+  padding-bottom: 100px;
+}
+
 main {
   @extend .container;
 }

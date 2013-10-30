@@ -320,6 +320,8 @@ window.addEventListener('load', function() {
   }
 
   function createChartFromTable() {
+    chart.style.display = null;
+
     HighTables.renderCharts();
 
     setTimeout(function() { progress.innerHTML = ''; }, 1000);
