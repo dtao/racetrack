@@ -1,1 +1,620 @@
-window.HighTables={},HighTables.charts={},$(document).ready(function(){function t(t){var e=a[t].engine,n=a[t].options;$("."+t+"-chart").each(function(){e.renderTo(this,n)})}function e(t){var e=a[t].engine,n=a[t].options;$("table.render-to-"+t+"-chart").each(function(){e.renderFromTable(this,n)})}function n(){for(var n in a)t(n),e(n)}function r(t){for(var e=$(t).attr("class").split(/\s+/),n=0;n<e.length;++n)if(e[n].match(/^(?:line|spline|area|stack|bar|column|pie)-chart$/))return e[n].replace(/-chart$/g,"")}function i(t){for(var e=$(t).attr("class").split(/\s+/),n=0;n<e.length;++n)if(e[n].match(/^render-to-(?:line|spline|area|stack|bar|column|pie)-chart$/))return e[n].replace(/^render-to-/g,"").replace(/-chart$/g,"")}Highcharts.setOptions({credits:{enabled:!!HighTables.includeHighchartsLinks}});var a={line:{engine:HighTables.LineChart},spline:{engine:HighTables.LineChart,options:{chart:{type:"spline"}}},area:{engine:HighTables.LineChart,options:{chart:{type:"area"}}},stack:{engine:HighTables.LineChart,options:{chart:{type:"area"},plotOptions:{area:{stacking:"normal"}}}},bar:{engine:HighTables.BarChart},column:{engine:HighTables.BarChart,options:{chart:{type:"column"}}},pie:{engine:HighTables.PieChart}};HighTables.renderCharts=n,HighTables.renderChart=function(t){var e=r(t),n=a[e].engine,i=a[e].options;n.renderTo(t,i)},HighTables.renderChartFromTable=function(t){var e=i(t),n=a[e].engine,r=a[e].options;n.renderFromTable(t,r)},n()}),HighTables.Parse=function(){function t(t){var e=parseFloat(t&&t.replace(/^\$|,/g,""));return isNaN(e)?null:e}function e(t){for(var e=[],n=0;n<t.length;++n)e.push(parseInt(t[n]));return e}function n(t,e){var n,r=0,a=[];for(i=0;i<t.length;++i)if("..."===t[i])for(n=t[i+1]||e+1;n>r;)a.push(r++);else r=parseInt(t[i]),a.push(r++);return a}return{number:t,integers:e,integersWithRanges:n}}(),HighTables.Base=function(t){function e(t,e){for(var n=t.split("."),r=window;n.length>0;)r=r[n.shift()];return"function"==typeof r&&e?r():r}function n(){return d||(d=t.is("table")?t:$(t.attr("data-source"))),d}function r(){var e,n={};for(var r in g)e=t.attr("data-"+r),e&&$.extend(n,g[r](e));return $.extend(n,{labelColumn:i(),valueColumns:a(),limit:o(),threshold:s(),transpose:u(),rowFilter:l()})}function i(){return parseInt(t.attr("data-label-column"))}function a(){var e=t.attr("data-value-columns");return e?HighTables.Parse.integersWithRanges(e.split(","),n().find("tr:first th, tr:first td").length-1):null}function o(){return parseInt(t.attr("data-limit"))}function s(){return parseFloat(t.attr("data-threshold"))}function u(){return"true"===t.attr("data-transpose")}function l(){var n=t.attr("data-row-filter");return n?e(n):void 0}t=$(t);var h,c,f,d,g={options:function(t){return e(t,!0)},title:function(t){return{title:{text:t}}},order:function(t){return{order:t}},"x-interval":function(t){return{xAxis:{tickInterval:parseInt(t)}}},"x-min":function(t){return{xAxis:{min:parseInt(t)}}},"y-interval":function(t){return{yAxis:{tickInterval:parseInt(t)}}},"y-min":function(t){return{yAxis:{min:parseInt(t)}}}};this.getTable=n,this.options=function(){return h||(h=r(),h.labelColumn=this.labelColumn(),h.valueColumns=this.valueColumns(),h.limit=o(),h.threshold=s(),h.transpose=u()),h},this.labelColumn=function(){return"undefined"==typeof c&&(c=i()),c},this.valueColumns=function(){return"undefined"==typeof f&&(f=a()),f},this.element=t},HighTables.Table=function(t){function e(t,e,n){return e in t?t[e]:n}function n(t,n){n=n||{};var r,i=t.text()||t.find("input").val();return e(n,"numeric",!0)?(r=HighTables.Parse.number(i),!n.threshold||r>=n.threshold?r:null):i}function r(t,e,r){var i=l.find("tr:nth-child("+(t+1)+")").find("th:nth-child("+e+"), td:nth-child("+e+")");return n(i,r)}$.extend(this,new HighTables.Base(t));var i,a,o,s,u,l=this.element;this.getCellValue=n,this.getOrCreateChart=function(){return i||(i=$("<div>").addClass("chart"),i.attr("id","chart-"+$(".chart").length+1),i.insertBefore(l)),i},this.firstRow=function(){return a||(a=l.find("tr:first")),a},this.bodyRows=function(){return o||(o=l.find("tr:gt(0)")),o},this.columnCount=function(){return s||(s=this.firstRow().find("td,th").length),s},this.rowCount=function(){return u||(u=l.find("tr").length),u},this.getColumnHeader=function(t){return n(this.firstRow().find("td:nth-child("+(t+1)+"),th:nth-child("+(t+1)+")"),{numeric:!1})},this.getColumnData=function(t,e){e=e||this.options()||{};var r=[];return this.bodyRows().each(function(){if(!e.rowFilter||e.rowFilter(this)!==!1){var i=$(this).find("td:nth-child("+(t+1)+")");r.push(n(i,e))}}),e.limit&&(r=r.slice(0,e.limit)),"descending"===e.order&&r.reverse(),r},this.getRowHeader=function(t){return n($(l.find("tr").get(t)).find("td:first"),{numeric:!1})},this.getRowData=function(t,e){e=e||this.options()||{};var i=[];if(e.valueColumns)for(var a=0;a<e.valueColumns.length;++a)i.push(r(t,e.valueColumns[a],e));else $(l.find("tr").get(t)).find("td:gt(0):not(.exclude-from-chart),th:gt(0):not(.exclude-from-chart)").each(function(){i.push(n($(this),e))});return i}},HighTables.Chart=function(t){$.extend(this,new HighTables.Base(t))},HighTables.LineChart=function(){function t(t,e){return e.labelColumn||0,t.getColumnData(0,$.extend({},e,{numeric:!1}))}function e(t,e){var n=[],r=e.valueColumns;if(r)for(var i=0;i<r.length;++i)n.push({name:t.getColumnHeader(r[i]),data:t.getColumnData(r[i],e)});else for(var i=1;i<t.columnCount();i++)n.push({name:t.getColumnHeader(i),data:t.getColumnData(i,e)});return n}function n(n,r,i){i=i||{};var o=t(n,i),s=e(n,i);a.push(new Highcharts.Chart($.extend(!0,{chart:{renderTo:r[0],type:"line"},xAxis:{categories:o},yAxis:{title:!1},title:!1,series:s},i)))}function r(t,e){var r=new HighTables.Chart(t),i=new HighTables.Table(r.getTable()[0]);return n(i,r.element,$.extend({},r.options(),e))}function i(t,e){var r=new HighTables.Table(t);return n(r,r.getOrCreateChart(),$.extend({},r.options(),e))}var a=HighTables.charts.line=[];return{renderTo:r,renderFromTable:i}}(),HighTables.BarChart=function(){function t(t,e){return e.transpose?t.getColumnData(0,$.extend({},e,{numeric:!1})):t.getRowData(0,$.extend({},e,{numeric:!1}))}function e(t){for(var e=0;e<t.length;++e)if(t[e])return!0;return!1}function n(t,n){for(var r,i=[],a=n.transpose?t.columnCount():t.rowCount(),o=n.limit?Math.min(n.limit+1,a):a,s=1;o>s;s++)r=n.transpose?{name:t.getColumnHeader(s),data:t.getColumnData(s,n)}:{name:t.getRowHeader(s),data:t.getRowData(s,n)},e(r.data)&&i.push(r);return i}function r(e,r,i){i=i||{};var a=t(e,i),s=n(e,i);o.push(new Highcharts.Chart($.extend(!0,{chart:{renderTo:r[0],type:"bar"},xAxis:{categories:a},yAxis:{title:!1},title:!1,series:s},i)))}function i(t,e){var n=new HighTables.Chart(t),i=new HighTables.Table(n.getTable()[0]);return r(i,n.element,$.extend({},n.options(),e))}function a(t,e){var n=new HighTables.Table(t);return r(n,n.getOrCreateChart(),$.extend({},n.options(),e))}var o=HighTables.charts.bar=[];return{renderTo:i,renderFromTable:a}}(),HighTables.PieChart=function(){function t(t){return t.valueColumns?"nth-child("+t.valueColumns[0]+")":"last-child"}function e(e,n){return e.getCellValue(e.firstRow().find("th:"+t(n)),{numeric:!1})}function n(t,e){return t.getCellValue($(e).find("td:first"),{numeric:!1})}function r(e,n,r){return e.getCellValue($(n).find("td:"+t(r)))}function i(t,e){var i=[];return t.bodyRows().each(function(){var a=n(t,this),o=r(t,this,e);a&&o&&i.push([a,o])}),i}function a(t,n){var r=e(t,n),a=i(t,n);return[{type:"pie",name:r,data:a}]}function o(t,e,n){n=n||{};var r=a(t,n);l.push(new Highcharts.Chart($.extend(!0,{chart:{renderTo:e[0],type:"pie"},title:!1,series:r},n)))}function s(t,e){var n=new HighTables.Chart(t),r=new HighTables.Table(n.getTable()[0]);return o(r,n.element,$.extend({},n.options(),e))}function u(t,e){var n=new HighTables.Table(t);return o(n,n.getOrCreateChart(),$.extend({},n.options(),e))}var l=HighTables.charts.pie=[];return{renderTo:s,renderFromTable:u}}();
+window.HighTables = {};
+
+HighTables.charts = {};
+
+$(document).ready(function() {
+  Highcharts.setOptions({
+    credits: {
+      enabled: !!HighTables.includeHighchartsLinks
+    }
+  });
+
+  var chartConfigs = {
+    "line": { engine: HighTables.LineChart },
+    "spline": { engine: HighTables.LineChart, options: { chart: { type: "spline" } } },
+    "area": { engine: HighTables.LineChart, options: { chart: { type: "area" } } },
+    "stack": { engine: HighTables.LineChart, options: { chart: { type: "area" }, plotOptions: { area: { stacking: "normal" } } } },
+    "bar": { engine: HighTables.BarChart },
+    "column": { engine: HighTables.BarChart, options: { chart: { type: "column" } } },
+    "pie": { engine: HighTables.PieChart }
+  };
+
+  function renderCharts(chartType) {
+    var engine  = chartConfigs[chartType].engine;
+    var options = chartConfigs[chartType].options;
+    $("." + chartType + "-chart").each(function() {
+      engine.renderTo(this, options);
+    });
+  }
+
+  function renderChartsFromTables(chartType) {
+    var engine  = chartConfigs[chartType].engine;
+    var options = chartConfigs[chartType].options;
+    $("table.render-to-" + chartType + "-chart").each(function() {
+      engine.renderFromTable(this, options);
+    })
+  }
+
+  function renderChartsFromConfigs() {
+    for (var chartType in chartConfigs) {
+      renderCharts(chartType);
+      renderChartsFromTables(chartType);
+    }
+  }
+
+  function getChartType(chart) {
+    var chartClasses = $(chart).attr("class").split(/\s+/);
+    for (var i = 0; i < chartClasses.length; ++i) {
+      if (chartClasses[i].match(/^(?:line|spline|area|stack|bar|column|pie)-chart$/)) {
+        return chartClasses[i].replace(/-chart$/g, "");
+      }
+    }
+  }
+
+  function getChartTypeFromTable(table) {
+    var chartClasses = $(table).attr("class").split(/\s+/);
+    for (var i = 0; i < chartClasses.length; ++i) {
+      if (chartClasses[i].match(/^render-to-(?:line|spline|area|stack|bar|column|pie)-chart$/)) {
+        return chartClasses[i].replace(/^render-to-/g, "").replace(/-chart$/g, "");
+      }
+    }
+  }
+
+  HighTables.renderCharts = renderChartsFromConfigs;
+
+  HighTables.renderChart = function(chart) {
+    var chartType = getChartType(chart);
+    var engine    = chartConfigs[chartType].engine;
+    var options   = chartConfigs[chartType].options;
+    engine.renderTo(chart, options);
+  };
+
+  HighTables.renderChartFromTable = function(table) {
+    var chartType = getChartTypeFromTable(table);
+    var engine    = chartConfigs[chartType].engine;
+    var options   = chartConfigs[chartType].options;
+    engine.renderFromTable(table, options);
+  };
+
+  renderChartsFromConfigs();
+});
+
+HighTables.Parse = function() {
+  function parseNumber(number) {
+    var result = parseFloat(number && number.replace(/^\$|,/g, ""));
+    return isNaN(result) ? null : result;
+  }
+
+  function parseIntegers(integers) {
+    var results = [];
+    for (var i = 0; i < integers.length; ++i) {
+      results.push(parseInt(integers[i]));
+    }
+    return results;
+  }
+
+  function parseIntegersWithRanges(sequence, max) {
+    var current = 0;
+    var next;
+
+    var values = [];
+    for (i = 0; i < sequence.length; ++i) {
+      if (sequence[i] === "...") {
+        next = sequence[i + 1] || max + 1;
+        while (current < next) {
+          values.push(current++);
+        }
+      } else {
+        current = parseInt(sequence[i]);
+        values.push(current++);
+      }
+    }
+
+    return values;
+  }
+
+  return {
+    number: parseNumber,
+    integers: parseIntegers,
+    integersWithRanges: parseIntegersWithRanges
+  };
+}();
+
+HighTables.Base = function(element) {
+  element = $(element);
+
+  var options;
+  var labelColumn;
+  var valueColumns;
+  var table;
+
+  var CHART_OPTIONS_MAP = {
+    "options": function(value) { return safeEval(value, true); },
+    "title": function(value) { return { title: { text: value } }; },
+    "order": function(value) { return { order: value }; },
+    "x-interval": function(value) { return { xAxis: { tickInterval: parseInt(value) } }; },
+    "x-min": function(value) { return { xAxis: { min: parseInt(value) } }; },
+    "y-interval": function(value) { return { yAxis: { tickInterval: parseInt(value) } }; },
+    "y-min": function(value) { return { yAxis: { min: parseInt(value) } }; }
+  };
+
+  function safeEval(name, exec) {
+    var parts = name.split(".");
+    var result = window;
+    while (parts.length > 0) {
+      result = result[parts.shift()];
+    }
+    return (typeof result === "function" && exec) ? result() : result;
+  }
+
+  function getTable() {
+    if (!table) {
+      if (element.is("table")) {
+        table = element;
+      } else {
+        table = $(element.attr("data-source"));
+      }
+    }
+    return table;
+  }
+
+  /* TODO: This is stupid. Options and chart options should not be conflated
+   * like this; chartOptions should be a property OF options instead.
+   */
+  function getChartOptions() {
+    var options = {};
+
+    var dataAttr;
+    for (var key in CHART_OPTIONS_MAP) {
+      dataAttr = element.attr("data-" + key);
+      if (dataAttr) {
+        $.extend(options, CHART_OPTIONS_MAP[key](dataAttr));
+      }
+    }
+
+    return $.extend(options, {
+      labelColumn: getLabelColumn(),
+      valueColumns: getValueColumns(),
+      limit: getLimit(),
+      threshold: getThreshold(),
+      transpose: getTranspose(),
+      rowFilter: getRowFilter()
+    });
+  }
+
+  function getLabelColumn() {
+    return parseInt(element.attr("data-label-column"));
+  }
+
+  function getValueColumns() {
+    var attr = element.attr("data-value-columns");
+    if (attr) {
+      return HighTables.Parse.integersWithRanges(
+        attr.split(","),
+        getTable().find("tr:first th, tr:first td").length - 1
+      );
+
+    } else {
+      return null;
+    }
+  }
+
+  function getLimit() {
+    return parseInt(element.attr("data-limit"));
+  }
+
+  function getThreshold() {
+    return parseFloat(element.attr("data-threshold"));
+  }
+
+  function getTranspose() {
+    return element.attr("data-transpose") === "true";
+  }
+
+  function getRowFilter() {
+    var attr = element.attr("data-row-filter");
+    if (attr) {
+      return safeEval(attr);
+    }
+  }
+
+  this.getTable = getTable;
+
+  this.options = function() {
+    if (!options) {
+      options = getChartOptions();
+      options.labelColumn = this.labelColumn();
+      options.valueColumns = this.valueColumns();
+      options.limit = getLimit();
+      options.threshold = getThreshold();
+      options.transpose = getTranspose();
+    }
+
+    return options;
+  };
+
+  this.labelColumn = function() {
+    if (typeof labelColumn === "undefined") {
+      labelColumn = getLabelColumn();
+    }
+
+    return labelColumn;
+  };
+
+  this.valueColumns = function() {
+    if (typeof valueColumns === "undefined") {
+      valueColumns = getValueColumns();
+    }
+
+    return valueColumns;
+  };
+
+  this.element = element;
+};
+
+HighTables.Table = function(element) {
+  $.extend(this, new HighTables.Base(element));
+
+  var table = this.element;
+  var chart;
+  var firstRow;
+  var bodyRows;
+  var columnCount;
+  var rowCount;
+
+  function getValueOrDefault(object, key, defaultValue) {
+    if (key in object) {
+      return object[key];
+    }
+    return defaultValue;
+  }
+
+  function getCellValue(cell, options) {
+    options = options || {};
+    var text = cell.text() || cell.find("input").val();
+    var number;
+
+    if (getValueOrDefault(options, "numeric", true)) {
+      number = HighTables.Parse.number(text);
+      if (!options.threshold || number >= options.threshold) {
+        return number;
+      } else {
+        return null;
+      }
+    } else {
+      return text;
+    }
+  }
+
+  function getCellValueAt(rowIndex, columnIndex, options) {
+    var cell = table.find("tr:nth-child(" + (rowIndex + 1) + ")")
+      .find("th:nth-child(" + columnIndex + "), td:nth-child(" + columnIndex + ")");
+    return getCellValue(cell, options);
+  }
+
+  this.getCellValue = getCellValue;
+
+  this.getOrCreateChart = function() {
+    if (!chart) {
+      chart = $("<div>").addClass("chart");
+      chart.attr("id", "chart-" + $(".chart").length + 1);
+      chart.insertBefore(table);
+    }
+    return chart;
+  };
+
+  this.firstRow = function() {
+    if (!firstRow) {
+      firstRow = table.find("tr:first");
+    }
+    return firstRow;
+  };
+
+  this.bodyRows = function() {
+    if (!bodyRows) {
+      bodyRows = table.find("tr:gt(0)");
+    }
+    return bodyRows;
+  };
+
+  this.columnCount = function() {
+    if (!columnCount) {
+      columnCount = this.firstRow().find("td,th").length;
+    }
+    return columnCount;
+  };
+
+  this.rowCount = function() {
+    if (!rowCount) {
+      rowCount = table.find("tr").length;
+    }
+    return rowCount;
+  };
+
+  this.getColumnHeader = function(index) {
+    return getCellValue(this.firstRow().find("td:nth-child(" + (index + 1) + "),th:nth-child(" + (index + 1) + ")"), {
+      numeric: false
+    });
+  };
+
+  this.getColumnData = function(index, options) {
+    options = options || this.options() || {};
+
+    // Ugh -- jQuery removes items when the function passed to map returns null.
+    var columnData = [];
+    this.bodyRows().each(function() {
+      if (options.rowFilter && options.rowFilter(this) === false) {
+        return;
+      }
+
+      var cell = $(this).find("td:nth-child(" + (index + 1) + ")");
+      columnData.push(getCellValue(cell, options));
+    });
+
+    if (options.limit) {
+      columnData = columnData.slice(0, options.limit);
+    }
+
+    if (options.order === "descending") {
+      columnData.reverse();
+    }
+
+    return columnData;
+  };
+
+  this.getRowHeader = function(index) {
+    return getCellValue($(table.find("tr").get(index)).find("td:first"), { numeric: false });
+  };
+
+  this.getRowData = function(index, options) {
+    options = options || this.options() || {};
+
+    // See comment from getColumnData.
+    var rowData = [];
+    if (options.valueColumns) {
+      for (var i = 0; i < options.valueColumns.length; ++i) {
+        rowData.push(getCellValueAt(index, options.valueColumns[i], options));
+      }
+    } else {
+      $(table.find("tr").get(index)).find("td:gt(0):not(.exclude-from-chart),th:gt(0):not(.exclude-from-chart)").each(function() {
+        rowData.push(getCellValue($(this), options));
+      });
+    }
+    return rowData;
+  };
+};
+
+HighTables.Chart = function(element) {
+  $.extend(this, new HighTables.Base(element));
+};
+
+HighTables.LineChart = function() {
+  var lineCharts = HighTables.charts["line"] = [];
+
+  function getCategories(table, options) {
+    var labelColumn = options.labelColumn || 0;
+    return table.getColumnData(0, $.extend({}, options, { numeric: false }));
+  }
+
+  function getSeries(table, options) {
+    var series = [];
+    var valueColumns = options.valueColumns;
+    if (valueColumns) {
+      for (var i = 0; i < valueColumns.length; ++i) {
+        series.push({
+          name: table.getColumnHeader(valueColumns[i]),
+          data: table.getColumnData(valueColumns[i], options)
+        });
+      }
+
+    } else {
+      for (var i = 1; i < table.columnCount(); i++) {
+        series.push({
+          name: table.getColumnHeader(i),
+          data: table.getColumnData(i, options)
+        });
+      }
+    }
+    return series;
+  }
+
+  function render(table, chart, options) {
+    options = options || {};
+
+    var categories = getCategories(table, options);
+    var series     = getSeries(table, options);
+
+    lineCharts.push(new Highcharts.Chart($.extend(true, {
+      chart: {
+        renderTo: chart[0],
+        type: "line"
+      },
+      xAxis: { categories: categories },
+      yAxis: { title: false },
+      title: false,
+      series: series
+    }, options)));
+  }
+
+  function renderTo(element, options) {
+    var chart = new HighTables.Chart(element);
+    var table = new HighTables.Table(chart.getTable()[0]);
+    return render(table, chart.element, $.extend({}, chart.options(), options));
+  }
+
+  function renderFromTable(element, options) {
+    var table = new HighTables.Table(element);
+    return render(table, table.getOrCreateChart(), $.extend({}, table.options(), options));
+  }
+
+  return {
+    renderTo: renderTo,
+    renderFromTable: renderFromTable
+  };
+}();
+
+HighTables.BarChart = function() {
+  var barCharts = HighTables.charts["bar"] = [];
+
+  function getCategories(table, options) {
+    if (options.transpose) {
+      return table.getColumnData(0, $.extend({}, options, { numeric: false }));
+    } else {
+      return table.getRowData(0, $.extend({}, options, { numeric: false }));
+    }
+  }
+
+  function anyValues(data) {
+    for (var i = 0; i < data.length; ++i) {
+      if (data[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function getSeries(table, options) {
+    var series = [];
+
+    var recordCount = options.transpose ?
+      table.columnCount() :
+      table.rowCount();
+
+    var limit = options.limit ?
+      Math.min(options.limit + 1, recordCount) :
+      recordCount;
+
+    var dataPoint;
+    for (var i = 1; i < limit; i++) {
+      if (options.transpose) {
+        dataPoint = {
+          name: table.getColumnHeader(i),
+          data: table.getColumnData(i, options)
+        };
+
+      } else {
+        dataPoint = {
+          name: table.getRowHeader(i),
+          data: table.getRowData(i, options)
+        };
+      }
+
+      if (anyValues(dataPoint.data)) {
+        series.push(dataPoint);
+      }
+    }
+    return series;
+  }
+
+  function render(table, chart, options) {
+    options = options || {};
+
+    var categories = getCategories(table, options);
+    var series     = getSeries(table, options);
+
+    barCharts.push(new Highcharts.Chart($.extend(true, {
+      chart: {
+        renderTo: chart[0],
+        type: "bar"
+      },
+      xAxis: { categories: categories },
+      yAxis: { title: false },
+      title: false,
+      series: series
+    }, options)));
+  }
+
+  function renderTo(element, options) {
+    var chart = new HighTables.Chart(element);
+    var table = new HighTables.Table(chart.getTable()[0]);
+    return render(table, chart.element, $.extend({}, chart.options(), options));
+  }
+
+  function renderFromTable(element, options) {
+    var table = new HighTables.Table(element);
+    return render(table, table.getOrCreateChart(), $.extend({}, table.options(), options));
+  }
+
+  return {
+    renderTo: renderTo,
+    renderFromTable: renderFromTable
+  };
+}();
+
+HighTables.PieChart = function() {
+  var pieCharts = HighTables.charts["pie"] = [];
+
+  function getCellSelector(options) {
+    if (options.valueColumns) {
+      return "nth-child(" + options.valueColumns[0] + ")";
+    } else {
+      return "last-child";
+    }
+  }
+
+  function getSeriesName(table, options) {
+    return table.getCellValue(table.firstRow().find("th:" + getCellSelector(options)), { numeric: false });
+  }
+
+  function getLabel(table, row) {
+    return table.getCellValue($(row).find("td:first"), { numeric: false });
+  }
+
+  function getValue(table, row, options) {
+    return table.getCellValue($(row).find("td:" + getCellSelector(options)));
+  }
+
+  function getSeriesData(table, options) {
+    var seriesData = [];
+    table.bodyRows().each(function() {
+      var label = getLabel(table, this);
+      var value = getValue(table, this, options);
+      if (label && value) {
+        seriesData.push([label, value]);
+      }
+    });
+    return seriesData;
+  }
+
+  function getSeries(table, options) {
+    var name = getSeriesName(table, options);
+    var data = getSeriesData(table, options);
+
+    return [{
+      type: "pie",
+      name: name,
+      data: data
+    }];
+  }
+
+  function render(table, chart, options) {
+    options = options || {};
+
+    var series  = getSeries(table, options);
+
+    pieCharts.push(new Highcharts.Chart($.extend(true, {
+      chart: {
+        renderTo: chart[0],
+        type: "pie"
+      },
+      title: false,
+      series: series
+    }, options)));
+  }
+
+  function renderTo(element, options) {
+    var chart = new HighTables.Chart(element);
+    var table = new HighTables.Table(chart.getTable()[0]);
+    return render(table, chart.element, $.extend({}, chart.options(), options));
+  }
+
+  function renderFromTable(element, options) {
+    var table = new HighTables.Table(element);
+    return render(table, table.getOrCreateChart(), $.extend({}, table.options(), options));
+  }
+
+  return {
+    renderTo: renderTo,
+    renderFromTable: renderFromTable
+  };
+}();
