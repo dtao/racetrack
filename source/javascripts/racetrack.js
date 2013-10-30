@@ -1,5 +1,20 @@
 var lodash = _.noConflict();
 
+function getChartOptions() {
+  var title = document.querySelector('input[name="title"]').value;
+
+  return {
+    title: {
+      text: title
+    },
+    plotOptions: {
+      series: {
+        animation: false
+      }
+    }
+  };
+}
+
 window.addEventListener('load', function() {
   Benchmark.options.maxTime = 1.0;
 
