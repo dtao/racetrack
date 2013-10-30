@@ -1,9 +1,9 @@
-//= require lib/codemirror/lib/codemirror
-//= require lib/codemirror/mode/javascript/javascript
-//= require lib/underscore/underscore
-//= require lib/lodash/dist/lodash
-//= require lib/benchmark/benchmark
-//= require lib/lazy.js/lazy
-//= require lib/lazy.js/lazy.dom
+//= require lib/codemirror
+//= require lib/codemirror/javascript
+//= require lib/underscore
+//= require lib/lodash
+//= require lib/benchmark
+//= require lib/lazy
+//= require lib/lazy.dom
 //= require lib/hightables
 //= require racetrack

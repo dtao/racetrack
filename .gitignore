@@ -9,6 +9,7 @@
 
 # Ignore bower dependencies
 /source/javascripts/lib
+/source/stylesheets/lib
 
 # Ignore the build directory
 /build
