@@ -70,12 +70,20 @@ window.addEventListener('load', function() {
     return Number(String(value).replace(/,/g, ''));
   }
 
-  function getLastCellValue(row) {
+  function getRowData(row) {
     if (!row) {
       return null;
     }
 
-    return parseNumber(row.querySelector('td:last-child').textContent);
+    return {
+      name: row.children[0].textContent,
+      results: Lazy(row.querySelectorAll('td:not(:first-child)')).map(function(cell) {
+        return {
+          inputSize: cell.getAttribute('data-input-size'),
+          hz: parseNumber(cell.textContent)
+        };
+      }).toArray()
+    };
   }
 
   function setLastCellValue(row, value) {
@@ -150,9 +158,9 @@ window.addEventListener('load', function() {
       .firstElementChild; // TR
 
     // Remove all but the first TH element
-    Lazy(headerRow.children).drop(1).each(function(cell) {
-      headerRow.removeChild(cell);
-    });
+    for (var i = headerRow.children.length - 1; i >= 1; --i) {
+      headerRow.removeChild(headerRow.children[i]);
+    }
   }
 
   function addInputSizeColumn(inputSize) {
@@ -165,6 +173,26 @@ window.addEventListener('load', function() {
     var columnHeader = document.createElement('TH');
     columnHeader.textContent = 'Ops/sec (N=' + inputSize + ')';
     headerRow.appendChild(columnHeader);
+  }
+
+  function addResultsRow(data) {
+    var resultRow = document.createElement('TR');
+    resultRow.setAttribute('data-benchmark', data.name);
+    results.appendChild(resultRow);
+
+    var labelCell = document.createElement('TD');
+    labelCell.textContent = data.name;
+    resultRow.appendChild(labelCell);
+
+    Lazy(data.results).each(function(result) {
+      var cell = document.createElement('TD');
+      cell.setAttribute('data-input-size', result.inputSize);
+      cell.textContent = formatNumber(result.hz);
+
+      resultRow.appendChild(cell);
+    });
+
+    return resultRow;
   }
 
   function addOrUpdateResultsRow(benchmark, sizes) {
@@ -220,7 +248,9 @@ window.addEventListener('load', function() {
 
     suite.forEach(function(benchmark) {
       benchmark.on('cycle', function() {
-        var progressBar = progress.querySelector('.progress-bar[data-benchmark="' + benchmark.name + '"]');
+        var label = benchmark.name + ' (N=' + benchmark.inputSize + ')';
+
+        var progressBar = progress.querySelector('.progress-bar[data-benchmark="' + label + '"]');
 
         if (!progressBar) {
           progressBar = document.createElement('DIV');
@@ -229,16 +259,19 @@ window.addEventListener('load', function() {
 
           progressBar = progressBar.appendChild(document.createElement('DIV'));
           progressBar.className = 'progress-bar';
-          progressBar.setAttribute('data-benchmark', benchmark.name);
+          progressBar.setAttribute('data-benchmark', label);
 
           progressBar.appendChild(document.createElement('SPAN'));
         }
 
-        cycles[benchmark.name] = benchmark.count;
-        topCycles = Math.max(topCycles, benchmark.count);
+        var currentCycles = cycles[label] || 0;
+        currentCycles += benchmark.count;
+        topCycles = Math.max(topCycles, currentCycles);
 
         progressBar.querySelector('SPAN').textContent =
-          benchmark.name + ': ' + benchmark.count + ' runs';
+          label + ': ' + currentCycles + ' runs';
+
+        cycles[label] = currentCycles;
 
         Lazy(progress.querySelectorAll('.progress-bar')).each(function(bar) {
           var benchmarkCycles = cycles[bar.getAttribute('data-benchmark')];
@@ -306,10 +339,14 @@ window.addEventListener('load', function() {
     progress.innerHTML = '';
     chart.innerHTML = '';
 
-    if (benchmark.lazyResult) {
-      addResultsRow({ name: 'Underscore', hz: benchmark.underscoreResult });
-      addResultsRow({ name: 'Lo-Dash', hz: benchmark.lodashResult });
-      addResultsRow({ name: 'Lazy.js', hz: benchmark.lazyResult });
+    resetResultsTable();
+
+    if (benchmark.lazyResults) {
+      Lazy(benchmark.lazyResults.results).pluck('inputSize').each(addInputSizeColumn);
+
+      addResultsRow(benchmark.underscoreResults);
+      addResultsRow(benchmark.lodashResults);
+      addResultsRow(benchmark.lazyResults);
 
       createChartFromTable();
     }
@@ -335,9 +372,9 @@ window.addEventListener('load', function() {
       setup: setupEditor.getValue(),
       lazy: lazyEditor.getValue(),
       underscore: underscoreEditor.getValue(),
-      underscoreResult: getLastCellValue(results.children[0]),
-      lodashResult: getLastCellValue(results.children[1]),
-      lazyResult: getLastCellValue(results.children[2]),
+      underscoreResults: getRowData(results.children[0]),
+      lodashResults: getRowData(results.children[1]),
+      lazyResults: getRowData(results.children[2]),
       created: new Date().getTime()
     };
 
