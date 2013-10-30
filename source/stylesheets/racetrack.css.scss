@@ -1,0 +1,107 @@
+main {
+  @extend .container;
+}
+
+header {
+  @extend .page-header;
+
+  h1 {
+    font-family: "Permanent Marker", serif;
+    font-size: 48pt;
+  }
+}
+
+#content {
+  @extend .row;
+
+  nav {
+    @extend .col-lg-2;
+
+    .saved-benchmarks {
+      @extend .list-group;
+
+      a {
+        @extend .list-group-item;
+
+        small {
+          @extend .text-muted;
+
+          display: block;
+        }
+      }
+    }
+  }
+
+  #stage {
+    @extend .col-lg-10;
+  }
+}
+
+table {
+  @extend .table, .table-striped, .table-hover;
+
+  th:last-child,
+  td:last-child {
+    text-align: right;
+  }
+
+  thead + tbody:empty {
+    display: none;
+  }
+}
+
+button {
+  @extend .btn, .btn-primary;
+}
+
+button#run-benchmarks {
+  @extend .btn-info;
+}
+
+button#save-benchmarks {
+  @extend .btn-primary;
+}
+
+.editors {
+  @extend .row;
+
+  margin-bottom: 20px;
+
+  fieldset {
+    @extend .col-lg-12;
+
+    margin-bottom: 20px;
+
+    input[type="text"] {
+      @extend .form-control;
+    }
+  }
+
+  #setup {
+    @extend .col-lg-12;
+
+    margin-bottom: 20px;
+  }
+
+  #lazy, #underscore {
+    @extend .col-lg-6;
+  }
+}
+
+.CodeMirror {
+  font-family: "Source Code Pro", monospace;
+  height: auto;
+}
+
+.CodeMirror-scroll {
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+@media all and (min-width: 1600px) {
+  main {
+    width: 75% !important;
+    min-width: 1600px !important;
+    max-width: 100% !important;
+  }
+}

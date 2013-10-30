@@ -13,47 +13,53 @@
       %header
         %h1 Racetrack
 
-      #progress
+      #content
+        %nav
+          .saved-benchmarks
 
-      #chart
+        %section#stage
+          #progress
 
-      %table#results
-        %thead
-          %tr
-            %th Implementation
-            %th Ops/second
+          #chart
 
-        %tbody
+          %table#results
+            %thead
+              %tr
+                %th Implementation
+                %th Ops/second
 
-      .editors
-        %fieldset
-          %input(type="text" name="title" placeholder="Enter a title" value="map().filter().reduce() over 1,000 elements")
+            %tbody
 
-        #setup
-          %textarea
-            :preserve
-              // Setup code
-              var array = _.range(1000);
+          .editors
+            %fieldset
+              %input(type="text" name="title" placeholder="Enter a title" value="map().filter().reduce() over 1,000 elements")
 
-              function increment(x) { return x + 1; }
-              function isEven(x) { return x % 2 === 0; }
-              function noop(x) {}
+            #setup
+              %textarea
+                :preserve
+                  // Setup code
+                  var array = _.range(1000);
 
-        #lazy
-          %textarea
-            :preserve
-              // Lazy code
-              Lazy(array).map(increment).filter(isEven).reduce(function(x, y) {
-                return x + y;
-              }, 0);
+                  function increment(x) { return x + 1; }
+                  function isEven(x) { return x % 2 === 0; }
+                  function noop(x) {}
 
-        #underscore
-          %textarea
-            :preserve
-              // Underscore/Lo-Dash code
-              _.reduce(_.filter(_.map(array, increment), isEven), function(x, y) {
-                return x + y;
-              }, 0);
+            #lazy
+              %textarea
+                :preserve
+                  // Lazy code
+                  Lazy(array).map(increment).filter(isEven).reduce(function(x, y) {
+                    return x + y;
+                  }, 0);
 
-      .actions
-        %button#run-benchmarks Run benchmarks
+            #underscore
+              %textarea
+                :preserve
+                  // Underscore/Lo-Dash code
+                  _.reduce(_.filter(_.map(array, increment), isEven), function(x, y) {
+                    return x + y;
+                  }, 0);
+
+          .actions
+            %button#run-benchmarks Run benchmarks
+            %button#save-benchmarks Save benchmarks
