@@ -1,0 +1,32 @@
+{
+  "destination": {
+    "css": "source/stylesheets/lib",
+    "js": "source/javascripts/lib"
+  },
+
+  "dependencies": [
+    ["marijnh/CodeMirror", "v3.12", {
+      "lib/codemirror.css": "codemirror.css",
+      "lib/codemirror.js": "codemirror.js",
+      "mode/javascript/javascript.js": "codemirror/javascript.js"
+    }],
+
+    ["twbs/bootstrap", "v3.0.2", "dist/css/bootstrap.css"],
+
+    ["jashkenas/underscore", "1.5.2", "underscore.js"],
+
+    ["lodash/lodash", "2.3.0", "lodash.js"],
+
+    ["bestiejs/benchmark.js", "v1.0.0", "benchmark.js"],
+
+    ["dtao/lazy.js", "0.2.1", ["lazy.js", "lazy.dom.js"]],
+
+    ["http://code.jquery.com", {
+      "jquery-1.10.2.js": "jquery.js"
+    }],
+
+    ["http://code.highcharts.com", "highcharts.js"],
+
+    ["dtao/HighTables", "0.1.1", "dist/hightables.js"]
+  ]
+}
