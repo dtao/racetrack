@@ -379,6 +379,7 @@ window.addEventListener('load', function() {
     progress.innerHTML = '';
     chart.innerHTML = '';
     title.value = '';
+    resetResultsTable();
     setupEditor.setValue('');
     lazyEditor.setValue('');
     underscoreEditor.setValue('');
