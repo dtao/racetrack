@@ -44,21 +44,20 @@
                   // Setup code
                   var array = _.range(N);
 
-                  function increment(x) { return x + 1; }
-                  function isEven(x) { return x % 2 === 0; }
+                  function identity(x) { return x; }
                   function noop(e) {}
 
             #lazy
               %textarea
                 :preserve
                   // Lazy code
-                  Lazy(array).map(increment).each(noop);
+                  Lazy(array).map(identity).each(noop);
 
             #underscore
               %textarea
                 :preserve
                   // Underscore/Lo-Dash code
-                  _.each(_.map(array, increment), noop);
+                  _.each(_.map(array, identity), noop);
 
           .actions
             %button#new-benchmark New
