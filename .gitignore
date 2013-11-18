@@ -7,7 +7,7 @@
 # Ignore bundler config
 /.bundle
 
-# Ignore bower dependencies
+# Ignore deft dependencies
 /source/javascripts/lib
 /source/stylesheets/lib
 
