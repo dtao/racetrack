@@ -42,7 +42,7 @@ header {
 #content {
   @extend .row;
 
-  nav {
+  & > nav {
     @extend .col-lg-2, .col-md-4;
 
     .saved-benchmarks {
@@ -144,14 +144,24 @@ button#save-benchmarks {
     }
   }
 
-  #setup {
+  & > nav {
     @extend .col-lg-12;
+
+    ul {
+      @extend .nav, .nav-tabs;
+    }
 
     margin-bottom: 20px;
   }
 
-  #lazy, #underscore {
-    @extend .col-lg-6;
+  section {
+    @extend .col-lg-12;
+
+    display: none;
+
+    &.active {
+      display: block;
+    }
   }
 }
 

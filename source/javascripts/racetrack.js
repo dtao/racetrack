@@ -21,21 +21,27 @@ window.addEventListener('load', function() {
   var results  = document.querySelector('table#results tbody'),
       progress = document.getElementById('progress'),
       chart    = document.getElementById('chart'),
-      errors   = document.getElementById('errors');
+      errors   = document.getElementById('errors'),
+      editors  = {};
 
   function createEditor(containerId) {
     var container = document.getElementById(containerId),
         textarea  = container.querySelector('textarea');
 
-    return CodeMirror.fromTextArea(textarea, {
+    var cm = CodeMirror.fromTextArea(textarea, {
       mode: 'javascript',
       lineNumbers: true
     });
+
+    editors[containerId] = cm;
+
+    return cm;
   }
 
   var title             = document.querySelector('input[name="title"]'),
       inputSizes        = document.querySelector('input[name="input-sizes"]'),
       benchmarksList    = document.querySelector('.saved-benchmarks'),
+      editorNav         = document.querySelector('.editors > nav'),
       setupEditor       = createEditor('setup'),
       lazyEditor        = createEditor('lazy'),
       underscoreEditor  = createEditor('underscore'),
@@ -372,6 +378,27 @@ window.addEventListener('load', function() {
 
       createChartFromTable();
     }
+  });
+
+  editorNav.addEventListener('click', function(e) {
+    var navLink = e.target;
+
+    if (navLink.nodeName !== 'A') {
+      return;
+    }
+
+    e.preventDefault();
+
+    var targetSection  = document.querySelector(navLink.getAttribute('href')),
+        currentSection = document.querySelector('.editors section.active'),
+        currentTab     = document.querySelector('.editors nav li.active');
+
+    currentSection.className = null;
+    currentTab.className = null;
+    targetSection.className = 'active';
+    navLink.parentNode.className = 'active';
+
+    editors[targetSection.id].refresh();
   });
 
   newButton.addEventListener('click', function() {

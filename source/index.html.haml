@@ -33,12 +33,20 @@
           .editors
             %fieldset
               .title
-                %input(type="text" name="title" placeholder="Enter a title" value="map() N values")
+                %label Enter a title
+                %input(type="text" name="title" placeholder="e.g., map() N values")
 
               .input-sizes
-                %input(type="text" name="input-sizes" placeholder="Input sizes, comma-delimited (e.g., 10, 100, 1000)" value="10, 100, 1000")
+                %label Input sizes, comma-delimited
+                %input(type="text" name="input-sizes" placeholder="e.g., 10, 100, 1000")
 
-            #setup
+            %nav
+              %ul.nav.nav-tabs
+                %li.active= link_to("Setup", "#setup")
+                %li= link_to("Lazy", "#lazy")
+                %li= link_to("Underscore/Lo-Dash", "#underscore")
+
+            %section#setup.active
               %textarea
                 :preserve
                   // Setup code
@@ -47,13 +55,13 @@
                   function identity(x) { return x; }
                   function noop(e) {}
 
-            #lazy
+            %section#lazy
               %textarea
                 :preserve
                   // Lazy code
                   Lazy(array).map(identity).each(noop);
 
-            #underscore
+            %section#underscore
               %textarea
                 :preserve
                   // Underscore/Lo-Dash code
