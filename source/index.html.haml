@@ -75,11 +75,10 @@
       %script#benchmark-template(type="text/plain")
         :plain
           (function(suite) {
+            var N = <%= inputSize %>;
+            <%= setup %>
+
             var benchmark = new Benchmark("<%= name %>", {
-              setup: function() {
-                var N = <%= inputSize %>;
-                <%= setup %>
-              },
               fn: function() { <%= code %> },
             });
 
